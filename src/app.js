@@ -127,6 +127,24 @@ function typeset(el) {
   function totals() { let att = 0, cor = 0, seen = 0; QS.forEach(q => { const r = P.q[q.id]; if (r && r.a) { seen++; att += r.a; cor += r.c; } }); return { att, cor, seen, acc: att ? cor / att : null }; }
   function updateFixCount() { const n = fixIds().length; $$(".nav-count").forEach(el => { el.textContent = n; el.hidden = n === 0; }); }
 
+  /* ---------- anonymous usage counts (GoatCounter; present only on the public GitHub Pages build) ---------- */
+  function track(path, title, event) {
+    let tries = 0;
+    const send = () => {
+      const gc = window.goatcounter;
+      if (gc && typeof gc.count === "function") { try { gc.count({ path, title: title || path, event: !!event }); } catch (e) { } }
+      else if (document.querySelector("script[data-goatcounter]") && tries++ < 40) setTimeout(send, 250);
+    };
+    send();
+  }
+  const VIEW_PATH = { home: "/home", learn: "/learn", ex: "/exercises", diff: "/difficulty", mock: "/mock-exam", fix: "/fix-it", progress: "/progress" };
+  function trackView() {
+    const { r, a } = route();
+    if (!VIEW_PATH[r]) return;
+    const path = r === "learn" && a ? `/learn/${a}` : VIEW_PATH[r];
+    track(path, r === "learn" && a && SEM[a] ? `Learn · ${SEM[a].short} ${SEM[a].name}` : path.slice(1));
+  }
+
   /* ---------- quiz engine ---------- */
   let S = null, timerInt = null;
   const isNumOpt = o => /^\$-?[\d.,]+\$$/.test(o.trim());
@@ -151,6 +169,7 @@ function typeset(el) {
     if (!ids.length) { toast("No questions match these settings."); return; }
     const fresh = o.fresh != null ? o.fresh : ST.fresh;
     S = { mode: o.mode, title: o.title, back: o.back || "#ex", ids, i: 0, inst: ids.map(id => buildInstance(QM[id], fresh)), ans: [], mock: !!o.mock, start: Date.now(), timerEnd: o.timer ? Date.now() + o.timer * 60000 : null, done: false, id: "s" + Date.now().toString(36) };
+    track(`start/${o.mode}${o.tag ? "/" + o.tag : ""}`, `Started: ${o.title}`, true);
     if (location.hash === "#play") render(); else location.hash = "#play";
     window.scrollTo(0, 0);
     if (S.timerEnd) { clearInterval(timerInt); timerInt = setInterval(tickTimer, 1000); }
@@ -185,7 +204,7 @@ function typeset(el) {
   function finishSession() {
     if (!S || S.done) return;
     S.done = true; const n = S.ans.filter(Boolean).length, c = S.ans.filter(a => a && a.ok).length;
-    if (n) { P.sessions.push({ id: S.id, t: Date.now(), mode: S.mode, title: S.title, n, c }); P.sessions = P.sessions.slice(-150); persist(); }
+    if (n) { P.sessions.push({ id: S.id, t: Date.now(), mode: S.mode, title: S.title, n, c }); P.sessions = P.sessions.slice(-150); persist(); track(`finish/${S.mode}`, `Finished: ${S.title}`, true); }
     if (ST.sfx && n) Sound.done();
     render(); window.scrollTo(0, 0);
   }
@@ -198,6 +217,8 @@ function typeset(el) {
     P.mocks.push({ id: S.id, t: Date.now(), n: S.ids.length, c, by, mins: Math.round((Date.now() - S.start) / 60000) }); P.mocks = P.mocks.slice(-40);
     P.sessions.push({ id: S.id, t: Date.now(), mode: "mock", title: S.title, n: S.ids.length, c }); P.sessions = P.sessions.slice(-150);
     persist(); S.done = true; if (ST.sfx) Sound.done(); render(); window.scrollTo(0, 0);
+    const band = c === 20 ? "20" : c >= 18 ? "18-19" : c >= 15 ? "15-17" : c >= 11 ? "11-14" : "0-10";
+    track(`mock-score/${band}`, `Mock exam score ${band} of 20`, true);
   }
   function buildMock() {
     const ids = [];
@@ -281,7 +302,7 @@ function typeset(el) {
     updateFixCount(); syncBadge();
     document.title = "Econometrics Midterm Prep";
   }
-  window.addEventListener("hashchange", () => { render(); const { r, s } = route(); if (!(r === "learn" && s)) window.scrollTo(0, 0); });
+  window.addEventListener("hashchange", () => { render(); trackView(); const { r, s } = route(); if (!(r === "learn" && s)) window.scrollTo(0, 0); });
 
   /* ---------- views ---------- */
   function vHome() {
@@ -436,15 +457,15 @@ function typeset(el) {
 
   /* ---------- actions ---------- */
   const ACT = {
-    "start-sem": el => { const sem = el.dataset.sem; startSession({ mode: "sem", title: `${SEM[sem].short} · ${sem === "mix" ? "Combined · Stata output" : SEM[sem].name}`, ids: bySem(sem).map(q => q.id), back: "#ex" }); },
+    "start-sem": el => { const sem = el.dataset.sem; startSession({ mode: "sem", tag: sem, title: `${SEM[sem].short} · ${sem === "mix" ? "Combined · Stata output" : SEM[sem].name}`, ids: bySem(sem).map(q => q.id), back: "#ex" }); },
     "start-all": () => startSession({ mode: "all", title: "All seminars, mixed", ids: QS.map(q => q.id) }),
-    "start-diff": el => { const d = +el.dataset.d; startSession({ mode: "diff", title: `${DIFF[d]} questions`, ids: QS.filter(q => q.d === d && ST.dsems.includes(q.sem)).map(q => q.id), back: "#diff" }); },
+    "start-diff": el => { const d = +el.dataset.d; startSession({ mode: "diff", tag: DIFF[d].toLowerCase(), title: `${DIFF[d]} questions`, ids: QS.filter(q => q.d === d && ST.dsems.includes(q.sem)).map(q => q.id), back: "#diff" }); },
     "start-fix": () => startSession({ mode: "fix", title: "Fix-it deck", ids: fixIds(), keepAll: true, order: "smart", back: "#fix", fresh: false }),
     "start-fix-fresh": () => startSession({ mode: "fix", title: "Fix-it deck · fresh numbers", ids: fixIds(), keepAll: true, order: "smart", back: "#fix", fresh: true }),
     "start-one": el => startSession({ mode: "fix", title: "Fix-it", ids: [el.dataset.id], keepAll: true, back: "#fix", fresh: false }),
     "start-mock": () => startSession({ mode: "mock", mock: true, title: "Mock midterm", ids: buildMock(), keepAll: true, order: "bank", timer: +ST.mockTimer || 0, fresh: ST.mockFresh, back: "#mock" }),
-    "practice-tags": el => { const sem = el.dataset.sem, tags = el.dataset.tags.split(","); startSession({ mode: "topic", title: `${SEM[sem].short} · ${el.dataset.title}`, ids: bySem(sem).filter(q => tags.includes(q.t)).map(q => q.id), keepAll: true, back: location.hash || "#learn" }); },
-    "practice-pattern": el => { const sem = el.dataset.sem; startSession({ mode: "pattern", title: `${SEM[sem].short} · ${el.dataset.title}`, ids: el.dataset.qs.split(",").map(n => `${sem}-${n}`).filter(id => QM[id]), keepAll: true, order: "bank", back: `#learn-${sem}` }); },
+    "practice-tags": el => { const sem = el.dataset.sem, tags = el.dataset.tags.split(","); startSession({ mode: "topic", tag: sem, title: `${SEM[sem].short} · ${el.dataset.title}`, ids: bySem(sem).filter(q => tags.includes(q.t)).map(q => q.id), keepAll: true, back: location.hash || "#learn" }); },
+    "practice-pattern": el => { const sem = el.dataset.sem; startSession({ mode: "pattern", tag: sem, title: `${SEM[sem].short} · ${el.dataset.title}`, ids: el.dataset.qs.split(",").map(n => `${sem}-${n}`).filter(id => QM[id]), keepAll: true, order: "bank", back: `#learn-${sem}` }); },
     "retry-wrong": el => startSession({ mode: "fix", title: "Retry misses", ids: el.dataset.ids.split(","), keepAll: true, back: S ? S.back : "#ex" }),
     pick: el => choose(+el.dataset.k),
     next: () => next(),
@@ -492,8 +513,8 @@ function typeset(el) {
       <label class="rng small" style="display:grid;gap:2px">Music volume<input id="mus-vol" type="range" min="0" max="1" step="0.05" value="${ST.musicVol}"></label>
       <hr class="soft"><div class="row between"><b class="small">Answer sounds</b><button type="button" class="chip${ST.sfx ? " on" : ""}" id="sfx-toggle">${ST.sfx ? "On" : "Off"}</button></div>
       <label class="rng small" style="display:grid;gap:2px">Sound effects volume<input id="sfx-vol" type="range" min="0" max="1" step="0.05" value="${ST.sfxVol}"></label>`;
-    $("#mus-toggle").onclick = () => { if (Sound.playing()) Sound.stop(); else { Sound.setMusicVol(ST.musicVol); Sound.play(ST.station); } musicUI(); };
-    $$("[data-station]", pop).forEach(b => b.onclick = () => { ST.station = b.dataset.station; saveST(); Sound.setMusicVol(ST.musicVol); Sound.play(ST.station); musicUI(); });
+    $("#mus-toggle").onclick = () => { if (Sound.playing()) Sound.stop(); else { Sound.setMusicVol(ST.musicVol); Sound.play(ST.station); track(`music/${ST.station}`, `Music: ${Sound.STATIONS[ST.station].name}`, true); } musicUI(); };
+    $$("[data-station]", pop).forEach(b => b.onclick = () => { ST.station = b.dataset.station; saveST(); Sound.setMusicVol(ST.musicVol); Sound.play(ST.station); track(`music/${ST.station}`, `Music: ${Sound.STATIONS[ST.station].name}`, true); musicUI(); });
     $("#mus-vol").oninput = e => { ST.musicVol = +e.target.value; saveST(); Sound.setMusicVol(ST.musicVol); };
     $("#sfx-toggle").onclick = () => { ST.sfx = !ST.sfx; saveST(); sfxBtn(); musicUI(); if (ST.sfx) Sound.correct(); };
     $("#sfx-vol").onchange = e => { ST.sfxVol = +e.target.value; saveST(); Sound.setSfxVol(ST.sfxVol); if (ST.sfx) Sound.correct(); };
@@ -509,7 +530,7 @@ function typeset(el) {
     document.addEventListener("click", e => { const p = $(".popover"); if (p && !p.hidden && !e.target.closest(".pop-wrap")) p.hidden = true; });
     $("#sfx-btn").onclick = () => { ST.sfx = !ST.sfx; saveST(); sfxBtn(); if (ST.sfx) Sound.correct(); toast(ST.sfx ? "Answer sounds on" : "Answer sounds off"); };
     $("#theme-btn").onclick = () => { ST.theme = ST.theme === "" ? "light" : ST.theme === "light" ? "dark" : ""; saveST(); themeBtn(); };
-    render(); initRemote();
+    render(); initRemote(); trackView();
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
 })();

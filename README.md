@@ -19,7 +19,7 @@ It works in any browser, on a laptop or a phone. There's nothing to install and 
 - **Progress**: mastery and level per seminar, accuracy by difficulty, your weakest topics and your mock exam history.
 - Soft sounds for right and wrong answers, and a small ambient music player.
 
-Your progress is saved in your own browser. Nothing is uploaded anywhere.
+Your progress is saved in your own browser and never leaves it. The public site counts anonymous visits with [GoatCounter](https://www.goatcounter.com) (no cookies, no personal data), such as how many people open each page or finish a mock exam, so I can see which parts are useful.
 
 ## Accuracy
 

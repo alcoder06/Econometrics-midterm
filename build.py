@@ -28,6 +28,18 @@ CREDIT_NAME = "alcoder"
 CREDIT_URL = "https://github.com/alcoder06"
 
 
+# GoatCounter account for anonymous visit counts on the public site (index.html only; the Claude artifact blocks it).
+# The app counts page changes and events itself, so the automatic page-load count is switched off.
+ANALYTICS_CODE = "alcoder"
+
+
+def analytics_tag() -> str:
+    if not ANALYTICS_CODE:
+        return ""
+    return (f'<script data-goatcounter="https://{ANALYTICS_CODE}.goatcounter.com/count" '
+            "data-goatcounter-settings='{\"no_onload\": true}' async src=\"https://gc.zgo.at/count.js\"></script>\n")
+
+
 def credit_html() -> str:
     name = f'<a href="{CREDIT_URL}" target="_blank" rel="noopener">{CREDIT_NAME}</a>' if CREDIT_URL else f"<b>{CREDIT_NAME}</b>"
     return f"<span>Developed by {name}</span>"
@@ -79,7 +91,8 @@ def build():
         "<meta name=\"description\" content=\"Econometrics midterm practice: theory by seminar, every question-bank MCQ with difficulty levels, mock exams and progress tracking.\">\n"
         "<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}"
         "body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>\n"
-        "</head>\n<body>\n" + page + "\n</body>\n</html>\n"
+        + analytics_tag()
+        + "</head>\n<body>\n" + page + "\n</body>\n</html>\n"
     )
     (ROOT / "index.html").write_text(standalone, encoding="utf-8")
     kb = len(page.encode("utf-8")) / 1024
