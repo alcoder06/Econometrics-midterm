@@ -1,0 +1,8 @@
+# build output for the Claude artifact (the site itself is index.html)
+dist/
+# raw datasets used to regenerate the Stata output
+data/raw/
+# private working notes
+PLAN.md
+__pycache__/
+*.pyc
