@@ -403,7 +403,7 @@ WIDGETS.logs = (b) => {
 
 /* ---- MIX ---- */
 WIDGETS.stataanat = (b) => {
-  const out = (typeof STATA_OUT !== "undefined" && STATA_OUT.st3) || "";
+  const out = (window.PACK_RES && window.PACK_RES.stata_st3) || "";
   const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   let h = esc(out);
   const rep = [["Number of obs   =       526", "obs"], ["F(2, 523)       =     75.99", "F"], ["Prob &gt; F        =    0.0000", "pF"], ["R-squared       =    0.2252", "r2"], ["Adj R-squared   =    0.2222", "adj"], ["Root MSE        =     3.257", "rmse"], ["    Residual |    5548.16       523    10.60834", "ss"], ["Coefficient", "coef"], ["Std. err.", "se"], ["P&gt;|t|", "p"], ["[95% conf. interval]", "ci"], [".6442721", "coef"], [".0538061", "se"], ["11.97", "t"], ["_cons", "cons"]];

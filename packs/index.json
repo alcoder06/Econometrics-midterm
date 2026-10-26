@@ -1,0 +1,14 @@
+{
+ "packs": [
+  {
+   "id": "econometrics",
+   "file": "econometrics.json",
+   "title": "Econometrics Midterm",
+   "subtitle": "WIUT · 5ECON012C",
+   "subject": "Econometrics",
+   "questions": 211,
+   "sections": 7,
+   "updated": "2026-10-26"
+  }
+ ]
+}
