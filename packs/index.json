@@ -9,6 +9,16 @@
    "questions": 211,
    "sections": 7,
    "updated": "2026-10-26"
+  },
+  {
+   "id": "microeconomics",
+   "file": "microeconomics.json",
+   "title": "Intermediate Microeconomics",
+   "subtitle": "WIUT · 5ECON010C",
+   "subject": "Microeconomics",
+   "questions": 50,
+   "sections": 5,
+   "updated": "2026-10-26"
   }
  ]
 }

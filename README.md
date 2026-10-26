@@ -26,6 +26,9 @@ Your progress is saved in your own browser, separately for each subject, and nev
 | Subject | Questions | Notes |
 |---|---|---|
 | Econometrics Midterm (WIUT 5ECON012C) | 211 | Stata output reproduced from the real datasets. The FoS answer keys (Stata Q28, Q29, Q30, Q32) are inferred and marked **Key unverified**. |
+| Intermediate Microeconomics (WIUT 5ECON010C) | 50 | The five seminar quizzes, each its own seminar, with interactive diagrams (price controls, tax incidence, price discrimination, Cournot/Stackelberg/Bertrand, cartels). The mock exam uses all 50. Four quiz figures weren't available and are redrawn to match the answer keys. |
+
+Direct links open a subject straight away, e.g. [`#pack-microeconomics`](https://alcoder06.github.io/Econometrics-midterm/#pack-microeconomics) or [`#pack-econometrics`](https://alcoder06.github.io/Econometrics-midterm/#pack-econometrics).
 
 New subjects are made with the Study Pack Creator: Claude reads the question bank, solves each question, re-solves it blind to catch mistakes, settles any disagreement with its strongest model, and flags anything uncertain for review before a pack is published. If you spot a wrong answer, please open an issue.
 

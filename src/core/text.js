@@ -95,7 +95,7 @@ function sanitize(html) {
         if (n === "class") { const cls = v.split(/\s+/).filter(c => SAN_CLASSES.has(c)); if (cls.length) { el.setAttribute("class", cls.join(" ")); keep = true; } }
         else if (n === "data-w" && tag === "div") keep = /^[a-z0-9]+$/i.test(v);
         else if ((n === "colspan" || n === "rowspan") && (tag === "td" || tag === "th")) keep = /^\d{1,2}$/.test(v);
-        else if (n === "src" && tag === "img") keep = /^data:image\/(png|jpe?g|webp|gif);base64,[a-z0-9+/=\s]+$/i.test(v) || /^[\w./-]+\.(png|jpe?g|webp|gif)$/i.test(v);
+        else if (n === "src" && tag === "img") keep = /^data:image\/(png|jpe?g|webp|gif|svg\+xml);base64,[a-z0-9+/=\s]+$/i.test(v) || /^[\w./-]+\.(png|jpe?g|webp|gif)$/i.test(v);
         else if (n === "alt" && tag === "img") keep = true;
         else if (n === "href" && tag === "a") keep = /^(https:\/\/|#)/i.test(v);
         if (!keep) el.removeAttribute(a.name);

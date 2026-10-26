@@ -38,7 +38,7 @@ BRAND = ('<svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true"><rect w
          '<circle cx="10.5" cy="25" r="3.2" style="fill:#fff"/><circle cx="17" cy="25.5" r="2.5" style="fill:#fff;opacity:.85"/>'
          '<circle cx="20.5" cy="17.5" r="3" style="fill:#fff"/><circle cx="27" cy="17" r="2.4" style="fill:#fff;opacity:.85"/>'
          '<circle cx="30" cy="10" r="2.8" style="fill:#fff"/></svg>')
-CORE_JS = ["core/text.js", "core/widgets.js", "core/audio.js", "player/player.js"]
+CORE_JS = ["core/text.js", "core/widgets.js", "core/widgets_micro.js", "core/audio.js", "player/player.js"]
 
 
 def read(p: Path) -> str:
@@ -133,9 +133,9 @@ def build(site_only: bool):
         return
     dist = ROOT / "dist"
     dist.mkdir(exist_ok=True)
-    econ = json.loads(read(PACKS / "econometrics.json"))
-    art = page("Econometrics Midterm Prep", ["core/styles.css"], player_body("Econometrics Prep", "Midterm · question bank"), KATEX_JS,
-               core + [json_script("EMBEDDED_PACKS", [econ]), inline_script(read(SRC / "player" / "boot_artifact.js"), "boot_artifact.js")])
+    embedded = [json.loads(read(PACKS / e["file"])) for e in entries]
+    art = page("Econometrics Midterm Prep", ["core/styles.css"], player_body("Exam Prep", "study packs"), KATEX_JS,
+               core + [json_script("EMBEDDED_PACKS", embedded), inline_script(read(SRC / "player" / "boot_artifact.js"), "boot_artifact.js")])
     (dist / "artifact.html").write_text(art, encoding="utf-8")
     creator = page("Study Pack Creator", ["core/styles.css", "creator/creator.css"],
                    read(SRC / "creator" / "body.html") + "\n" + player_body("Preview", "as students see it", hidden=True),

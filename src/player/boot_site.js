@@ -19,9 +19,13 @@
   };
   let last = "";
   try { last = (JSON.parse(localStorage.getItem("econprep.settings.v1") || "{}").lastPack) || ""; } catch (e) { }
-  const first = packs.find(p => p.id === last) || packs[0];
+  // Direct links: #pack-<id> opens that subject; #pack-<id>~learn-s2 also opens a page inside it.
+  const deep = location.hash.match(/^#pack-([a-z0-9-]+)(?:~([a-z0-9-]+))?$/i);
+  const wanted = deep && packs.find(p => p.id === deep[1].toLowerCase());
+  const first = wanted || packs.find(p => p.id === last) || packs[0];
   try {
+    if (deep) history.replaceState(null, "", "#" + (deep[2] || "home"));
     StudyPlayer.start(await loadPack(first.id), { packs, loadPack, allowFile: true });
-    if (packs.length > 1 && !last) location.hash = "#packs";
+    if (packs.length > 1 && !last && !wanted) location.hash = "#packs";
   } catch (e) { fail("Check your connection and reload the page."); }
 })();
